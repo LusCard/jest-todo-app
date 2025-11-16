@@ -38,10 +38,9 @@ export class TodoService {
   clear(): void {
     this.todos = [];
   }
-
-  stats(): { total: number; completed: number; pending: number } {
+  stats() {
     const total = this.todos.length;
-    const completed = this.todos.filter((x) => x.completed).length;
+    const completed = this.todos.filter((t) => t.completed).length;
     const pending = total - completed;
     return { total, completed, pending };
   }
