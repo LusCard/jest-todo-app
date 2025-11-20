@@ -1,31 +1,29 @@
-
-import request from 'supertest';
-import app from '../../src/app';
-
-describe('Todo API', () => {
+import request from "supertest";
+import app from "../../src/app";
+describe("Todo API", () => {
   // Test de salud: verifica que el servidor responda correctamente
-  it('GET /health -> 200', async () => {
-    const res = await request(app).get('/health');
+  it("GET /health -> 200", async () => {
+    const res = await request(app).get("/health");
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ ok: true });
   });
 
   // Test: creación de un TODO mediante HTTP POST
-  it('POST /todos crea un todo', async () => {
-    const res = await request(app).post('/todos').send({ title: 'Probar API' });
+  it("POST /todos crea un todo", async () => {
+    const res = await request(app).post("/todos").send({ title: "Probar API" });
     expect(res.status).toBe(201); // código HTTP correcto
-    expect(res.body).toHaveProperty('id'); // devuelve un id
-    expect(res.body.title).toBe('Probar API');
+    expect(res.body).toHaveProperty("id"); // devuelve un id
+    expect(res.body.title).toBe("Probar API");
   });
 
   // Flujo completo: crear → listar → toggle → borrar
-  it('flujo: crear -> listar -> toggle -> borrar', async () => {
+  it("flujo: crear -> listar -> toggle -> borrar", async () => {
     // 1) Crear
-    const create = await request(app).post('/todos').send({ title: 'Flujo' });
+    const create = await request(app).post("/todos").send({ title: "Flujo" });
     const id = create.body.id as string;
 
     // 2) Listar y comprobar que existe
-    const list = await request(app).get('/todos');
+    const list = await request(app).get("/todos");
     expect(Array.isArray(list.body)).toBe(true);
     expect(list.body.some((t: any) => t.id === id)).toBe(true);
 
@@ -38,14 +36,26 @@ describe('Todo API', () => {
     expect(del.status).toBe(204);
 
     // 5) Verificar que ya no está
-    const list2 = await request(app).get('/todos');
+    const list2 = await request(app).get("/todos");
     expect(list2.body.some((t: any) => t.id === id)).toBe(false);
   });
 
   // Caso de error: título inválido
-  it('POST /todos con título inválido -> 400', async () => {
-    const res = await request(app).post('/todos').send({ title: 'a' });
+  it("POST /todos con título inválido -> 400", async () => {
+    const res = await request(app).post("/todos").send({ title: "a" });
     expect(res.status).toBe(400);
-    expect(res.body).toHaveProperty('error');
+    expect(res.body).toHaveProperty("error");
+  });
+  it("GET /todos/stats devuelve los totales", async () => {
+    const a = await request(app).post("/todos").send({ title: "AAA" });
+    const b = await request(app).post("/todos").send({ title: "BBB" });
+    const c = await request(app).post("/todos").send({ title: "CCC" });
+
+    await request(app).patch(`/todos/${b.body.id}/toggle`);
+
+    const res = await request(app).get("/todos/stats");
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ total: 3, completed: 1, pending: 2 });
   });
 });

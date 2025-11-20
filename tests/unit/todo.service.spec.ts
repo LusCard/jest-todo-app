@@ -41,6 +41,10 @@ describe("TodoService", () => {
   });
 
   it("devuelve totales correctos (total, completed, pending)", () => {
-    expect(svc.stats()).toEqual({ total: 0, completed: 0, pending: 0 });
+    svc.create("Tarea 1");
+    const tarea2 = svc.create("Tarea 2");
+    svc.create("Tarea 3");
+    svc.toggle(tarea2.id);
+    expect(svc.stats()).toEqual({ total: 3, completed: 1, pending: 2 });
   });
 });
